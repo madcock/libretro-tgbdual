@@ -78,6 +78,8 @@ int audio_2p_mode                        = 0;
 bool already_checked_options             = false;
 bool libretro_supports_persistent_buffer = false;
 bool libretro_supports_bitmasks          = false;
+// SF2000 TODO: this malloc doesn't executes so my_av_info remains NULL at init. why?
+// something to do with static initialization in static c++ library when statically linked to C app?
 struct retro_system_av_info *my_av_info  = (retro_system_av_info*)malloc(sizeof(*my_av_info));
 
 void retro_get_system_info(struct retro_system_info *info)
@@ -121,6 +123,10 @@ void retro_init(void)
    unsigned level = 4;
    struct retro_log_callback log;
 
+#if defined(SF2000)
+   if (!my_av_info)
+      my_av_info = (retro_system_av_info*)malloc(sizeof(*my_av_info));
+#endif
    if(environ_cb(RETRO_ENVIRONMENT_GET_LOG_INTERFACE, &log))
       log_cb = log.log;
    else
@@ -406,6 +412,9 @@ void retro_unload_game(void)
       }
    }
    free(my_av_info);
+#if defined(SF2000)
+   my_av_info = NULL;
+#endif
    libretro_supports_persistent_buffer = false;
 }
 
